@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>OMIGA_Y</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070a10;
+    --bg2:#0c121b;
+    --panel:#0f1620;
+    --line:#1b2733;
+    --cyan:#4dd8e8;
+    --cyan-dim:#245a63;
+    --gold:#e8a94d;
+    --red:#e85d4d;
+    --text:#e6edf3;
+    --text-dim:#7c8a99;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(77,216,232,0.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Tajawal',sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    overflow-x:hidden;
+  }
+  .scanlines{
+    position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.035;
+    background:repeating-linear-gradient(0deg, #fff 0px, transparent 1px, transparent 3px);
+  }
+
+  /* ---- Header ---- */
+  header{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px 10px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(12,18,27,.9), rgba(12,18,27,.4));
+    backdrop-filter:blur(6px);
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .core{
+    width:34px; height:34px; border-radius:50%;
+    position:relative;
+    background:radial-gradient(circle at 50% 50%, rgba(77,216,232,.9), rgba(77,216,232,.15) 55%, transparent 70%);
+    box-shadow:0 0 14px rgba(77,216,232,.55);
+  }
+  .core::before{
+    content:''; position:absolute; inset:-6px; border-radius:50%;
+    border:1px solid var(--cyan-dim);
+    animation:spin 6s linear infinite;
+  }
+  .core.thinking{ animation:pulse 1s ease-in-out infinite; }
+  .core.thinking::before{ animation:spin 1.2s linear infinite; border-color:var(--gold); }
+  .core.speaking::before{ border-color:var(--gold); animation:spin 2.4s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.18); opacity:.7; } }
+
+  .brand h1{
+    font-family:'Orbitron',sans-serif; font-size:17px; letter-spacing:2px; margin:0;
+    color:var(--text); direction:ltr;
+  }
+  .brand h1 span{ color:var(--cyan); }
+  .brand small{ display:block; font-size:10px; letter-spacing:1.5px; color:var(--text-dim); direction:ltr; margin-top:1px;}
+  .icon-btn{
+    width:38px; height:38px; border-radius:10px; border:1px solid var(--line);
+    background:var(--panel); color:var(--text-dim); display:flex; align-items:center; justify-content:center;
+    font-size:16px; cursor:pointer;
+  }
+  .icon-btn:active{ background:var(--cyan-dim); color:#fff; }
+
+  /* ---- Status strip ---- */
+  .status{
+    font-size:11px; color:var(--text-dim); text-align:center; padding:6px 10px;
+    border-bottom:1px solid var(--line); background:rgba(255,255,255,.015);
+    min-height:26px; display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .status .dot{ width:6px; height:6px; border-radius:50%; background:var(--cyan); box-shadow:0 0 6px var(--cyan); }
+
+  /* ---- Chat ---- */
+  main{ flex:1; overflow-y:auto; padding:16px 14px 8px; position:relative; z-index:1; }
+  .msg{ max-width:88%; margin-bottom:12px; display:flex; flex-direction:column; animation:rise .25s ease; }
+  @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .msg.user{ margin-inline-start:auto; align-items:flex-end; }
+  .msg.omi{ margin-inline-end:auto; align-items:flex-start; }
+  .bubble{
+    padding:11px 14px; border-radius:14px; font-size:14.5px; line-height:1.7; white-space:pre-wrap;
+  }
+  .msg.user .bubble{ background:linear-gradient(135deg, #163a40, #0f2529); border:1px solid var(--cyan-dim); border-bottom-right-radius:4px; }
+  .msg.omi .bubble{ background:var(--panel); border:1px solid var(--line); border-bottom-left-radius:4px; }
+  .msg .who{ font-size:10px; color:var(--text-dim); margin:0 4px 4px; letter-spacing:.5px; }
+
+  .empty-state{
+    margin-top:14vh; text-align:center; color:var(--text-dim); padding:0 20px;
+  }
+  .empty-state .core-big{
+    width:74px; height:74px; margin:0 auto 18px;
+    border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(77,216,232,.85), rgba(77,216,232,.1) 55%, transparent 70%);
+    box-shadow:0 0 30px rgba(77,216,232,.4);
+    position:relative;
+  }
+  .empty-state .core-big::before{
+    content:''; position:absolute; inset:-10px; border-radius:50%; border:1px dashed var(--cyan-dim);
+    animation:spin 10s linear infinite;
+  }
+  .empty-state h2{ font-family:'Orbitron',sans-serif; font-size:15px; letter-spacing:1px; color:var(--text); margin:0 0 8px;}
+  .empty-state p{ font-size:13px; line-height:1.8; max-width:320px; margin:0 auto; }
+
+  /* ---- Quick actions ---- */
+  .quick{
+    display:flex; gap:8px; padding:10px 14px 4px; overflow-x:auto; position:relative; z-index:1;
+  }
+  .qbtn{
+    flex:none; display:flex; align-items:center; gap:6px; padding:8px 13px; border-radius:20px;
+    background:var(--panel); border:1px solid var(--line); color:var(--text); font-size:12.5px;
+    text-decoration:none; white-space:nowrap;
+  }
+  .qbtn:active{ border-color:var(--cyan); color:var(--cyan); }
+
+  /* ---- Input bar ---- */
+  .inputbar{
+    display:flex; align-items:flex-end; gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line); background:var(--bg2); position:relative; z-index:2;
+  }
+  .inputbar textarea{
+    flex:1; resize:none; max-height:110px; min-height:42px; border-radius:14px;
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:11px 14px; font-family:'Tajawal',sans-serif; font-size:14.5px; line-height:1.5;
+  }
+  .inputbar textarea:focus{ outline:none; border-color:var(--cyan); }
+  .round-btn{
+    flex:none; width:42px; height:42px; border-radius:50%; border:1px solid var(--line);
+    background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center;
+    font-size:17px; cursor:pointer;
+  }
+  .round-btn.send{ background:linear-gradient(135deg, var(--cyan), #2b8a99); color:#04181c; border:none; }
+  .round-btn.mic.listening{ background:var(--red); color:#fff; border:none; animation:pulse 1s infinite; }
+  .round-btn:active{ transform:scale(.94); }
+  .round-btn:disabled{ opacity:.4; }
+
+  /* ---- Settings drawer ---- */
+  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:10; display:none; }
+  .overlay.open{ display:block; }
+  .drawer{
+    position:fixed; top:0; bottom:0; left:0; width:min(320px, 86vw); z-index:11;
+    background:var(--bg2); border-inline-end:1px solid var(--line);
+    transform:translateX(-100%); transition:transform .25s ease;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    overflow-y:auto;
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer h3{ font-family:'Orbitron',sans-serif; font-size:13px; letter-spacing:1px; color:var(--cyan); margin:18px 0 8px; }
+  .drawer h3:first-child{ margin-top:0; }
+  .drawer label{ display:block; font-size:12px; color:var(--text-dim); margin-bottom:5px; }
+  .drawer input[type=text], .drawer textarea, .drawer select{
+    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:9px 11px; font-family:'Tajawal',sans-serif; font-size:13.5px; margin-bottom:12px;
+  }
+  .drawer textarea{ min-height:70px; resize:vertical; }
+  .row-flex{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .switch{ position:relative; width:42px; height:24px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; inset:0; background:var(--line); border-radius:20px; cursor:pointer; transition:.2s; }
+  .slider::before{ content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .switch input:checked + .slider{ background:var(--cyan); }
+  .switch input:checked + .slider::before{ transform:translateX(-18px); }
+  .save-btn{
+    width:100%; padding:11px; border-radius:12px; border:none; margin-top:6px;
+    background:linear-gradient(135deg, var(--cyan), #2b8a99); color:#04181c; font-weight:700; font-size:13.5px;
+  }
+  .clear-btn{
+    width:100%; padding:10px; border-radius:12px; border:1px solid var(--red); margin-top:10px;
+    background:transparent; color:var(--red); font-size:12.5px;
+  }
+  .note{ font-size:11px; color:var(--text-dim); line-height:1.7; background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:10px; padding:9px 11px; }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+
+<header>
+  <div class="brand">
+    <div class="core" id="coreIcon"></div>
+    <div>
+      <h1>OMIGA<span>_Y</span></h1>
+      <small id="userLine">PERSONAL AI · v1</small>
+    </div>
+  </div>
+  <button class="icon-btn" id="menuBtn">☰</button>
+</header>
+
+<div class="status" id="statusLine"><span class="dot"></span><span>جاهز</span></div>
+
+<main id="chatArea">
+  <div class="empty-state" id="emptyState">
+    <div class="core-big"></div>
+    <h2>مرحبًا، أنا Omiga_y</h2>
+    <p>مساعدك الشخصي. اكتب أو تكلم، وأنا أتذكر معلوماتك بين الجلسات. اضغط ☰ لتعبّي اسمك ومعلومات عنك، وتختار صوتي.</p>
+  </div>
+</main>
+
+<div class="quick" id="quickRow"></div>
+
+<div class="inputbar">
+  <button class="round-btn mic" id="micBtn" title="تحدث">🎤</button>
+  <textarea id="textInput" rows="1" placeholder="اكتب رسالتك لـ Omiga_y..."></textarea>
+  <button class="round-btn send" id="sendBtn">➤</button>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <h3>من أنت</h3>
+  <label>اسمك</label>
+  <input type="text" id="profName" placeholder="مثال: أحمد">
+  <label>معلومات يتذكرها عنك (تفضيلاتك، شغلك، أي شي)</label>
+  <textarea id="profNotes" placeholder="مثال: مهندس، أسكن ببغداد، أحب الرد المختصر..."></textarea>
+
+  <h3>الصوت</h3>
+  <div class="row-flex">
+    <label style="margin:0;">تفعيل الرد الصوتي</label>
+    <label class="switch"><input type="checkbox" id="voiceToggle"><span class="slider"></span></label>
+  </div>
+  <label>اختر صوت Omiga_y</label>
+  <select id="voiceSelect"></select>
+
+  <h3>أوامر سريعة</h3>
+  <div class="note">التحكم بالجهاز من داخل المتصفح محدود بحماية آبل. الأزرار بالأسفل تفتح تطبيقات النظام مباشرة (اتصال، خرائط، رسائل...). لتحكم أعمق (تذكيرات، أتمتة) استخدم تطبيق Shortcuts مع اختصار Omiga_y.</div>
+
+  <h3>البيانات</h3>
+  <button class="save-btn" id="saveProfileBtn">حفظ</button>
+  <button class="clear-btn" id="clearChatBtn">مسح المحادثة</button>
+</div>
+
+<script>
+(function(){
+  const chatArea = document.getElementById('chatArea');
+  const emptyState = document.getElementById('emptyState');
+  const textInput = document.getElementById('textInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const micBtn = document.getElementById('micBtn');
+  const coreIcon = document.getElementById('coreIcon');
+  const statusLine = document.getElementById('statusLine');
+  const userLine = document.getElementById('userLine');
+  const menuBtn = document.getElementById('menuBtn');
+  const overlay = document.getElementById('overlay');
+  const drawer = document.getElementById('drawer');
+  const profName = document.getElementById('profName');
+  const profNotes = document.getElementById('profNotes');
+  const voiceToggle = document.getElementById('voiceToggle');
+  const voiceSelect = document.getElementById('voiceSelect');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const clearChatBtn = document.getElementById('clearChatBtn');
+  const quickRow = document.getElementById('quickRow');
+
+  let config = { name:'', notes:'', voiceEnabled:true, voiceURI:'' };
+  let history = []; // {role, content}
+  let voices = [];
+
+  // ---------- Storage helpers ----------
+  async function loadConfig(){
+    try{
+      const r = await window.storage.get('omiga-config', false);
+      if(r && r.value){ config = Object.assign(config, JSON.parse(r.value)); }
+    }catch(e){ /* no config yet */ }
+  }
+  async function saveConfig(){
+    try{ await window.storage.set('omiga-config', JSON.stringify(config), false); }
+    catch(e){ console.error('config save failed', e); }
+  }
+  async function loadHistory(){
+    try{
+      const r = await window.storage.get('omiga-chat', false);
+      if(r && r.value){ history = JSON.parse(r.value); }
+    }catch(e){ /* no history yet */ }
+  }
+  async function saveHistory(){
+    try{ await window.storage.set('omiga-chat', JSON.stringify(history.slice(-40)), false); }
+    catch(e){ console.error('history save failed', e); }
+  }
+
+  // ---------- UI: chat rendering ----------
+  function renderAll(){
+    chatArea.innerHTML = '';
+    if(history.length === 0){
+      chatArea.appendChild(emptyState);
+      return;
+    }
+    history.forEach(m => appendBubble(m.role, m.content, false));
+    scrollDown();
+  }
+  function appendBubble(role, text, doScroll=true){
+    if(emptyState.parentNode) emptyState.remove();
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ' + (role === 'user' ? 'user' : 'omi');
+    const who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = role === 'user' ? (config.name || 'أنت') : 'OMIGA_Y';
+    const bub = document.createElement('div');
+    bub.className = 'bubble';
+    bub.textContent = text;
+    wrap.appendChild(who); wrap.appendChild(bub);
+    chatArea.appendChild(wrap);
+    if(doScroll) scrollDown();
+    return bub;
+  }
+  function scrollDown(){ chatArea.scrollTop = chatArea.scrollHeight + 200; }
+  function setStatus(text, mode){
+    statusLine.querySelector('span:last-child').textContent = text;
+    coreIcon.className = 'core' + (mode ? ' ' + mode : '');
+  }
+
+  // ---------- Voices (speechSynthesis) ----------
+  function populateVoices(){
+    voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    voiceSelect.innerHTML = '';
+    if(voices.length === 0){
+      const opt = document.createElement('option');
+      opt.textContent = 'لا توجد أصوات متاحة بهذا المتصفح';
+      voiceSelect.appendChild(opt);
+      return;
+    }
+    // Arabic voices first
+    const sorted = [...voices].sort((a,b) => {
+      const aAr = a.lang.startsWith('ar') ? 0 : 1;
+      const bAr = b.lang.startsWith('ar') ? 0 : 1;
+      return aAr - bAr;
+    });
+    sorted.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.voiceURI;
+      opt.textContent = v.name + ' (' + v.lang + ')';
+      voiceSelect.appendChild(opt);
+    });
+    if(config.voiceURI){ voiceSelect.value = config.voiceURI; }
+  }
+  if('speechSynthesis' in window){
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+  }
+
+  function speak(text){
+    if(!config.voiceEnabled || !('speechSynthesis' in window)) return;
+    try{
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      const chosen = voices.find(v => v.voiceURI === config.voiceURI);
+      if(chosen) u.voice = chosen;
+      u.rate = 1.0;
+      u.onstart = () => setStatus('Omiga_y يتكلم...', 'speaking');
+      u.onend = () => setStatus('جاهز', '');
+      window.speechSynthesis.speak(u);
+    }catch(e){ console.error('speak failed', e); }
+  }
+
+  // ---------- Speech recognition (voice input) ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recog = null;
+  let listening = false;
+  if(SR){
+    recog = new SR();
+    recog.lang = 'ar-SA';
+    recog.interimResults = false;
+    recog.maxAlternatives = 1;
+    recog.onresult = (e) => {
+      const t = e.results[0][0].transcript;
+      textInput.value = t;
+      stopListening();
+      sendMessage();
+    };
+    recog.onerror = () => { stopListening(); setStatus('تعذر التقاط الصوت، جرب الكتابة', ''); };
+    recog.onend = () => { stopListening(); };
+  }
+  function startListening(){
+    if(!recog){
+      setStatus('الإدخال الصوتي غير مدعوم بهذا المتصفح', '');
+      return;
+    }
+    listening = true;
+    micBtn.classList.add('listening');
+    setStatus('أسمعك...', 'thinking');
+    try{ recog.start(); }catch(e){}
+  }
+  function stopListening(){
+    listening = false;
+    micBtn.classList.remove('listening');
+    if(statusLine.querySelector('span:last-child').textContent === 'أسمعك...') setStatus('جاهز', '');
+    try{ recog && recog.stop(); }catch(e){}
+  }
+  micBtn.addEventListener('click', () => {
+    if(listening) stopListening(); else startListening();
+  });
+
+  // ---------- Claude API call ----------
+  async function askOmiga(userText){
+    const sys = `أنت "Omiga_y"، مساعد ذكاء اصطناعي شخصي متطور، بأسلوب واثق وذكي ومباشر يشبه مساعد جارفيس، لكنك صريح دائمًا حول قدراتك الحقيقية ولا تدعي أنك تتحكم فعليًا بأجهزة المستخدم إلا إذا ذكر أنه نفذ ذلك بنفسه. تحدث بالعربية (لهجة عراقية إن ناسب السياق) ما لم يطلب المستخدم غير ذلك. كن مختصرًا ومفيدًا، بلا حشو.
+معلومات عن المستخدم:
+الاسم: ${config.name || 'غير محدد'}
+ملاحظات: ${config.notes || 'لا يوجد'}`;
+
+    const apiMessages = history.slice(-16).map(m => ({role: m.role, content: m.content}));
+    apiMessages.push({role:'user', content:userText});
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: sys,
+        messages: apiMessages
+      })
+    });
+    const data = await response.json();
+    const textBlocks = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
+    return textBlocks.join('\n').trim() || '...';
+  }
+
+  async function sendMessage(){
+    const val = textInput.value.trim();
+    if(!val) return;
+    textInput.value = '';
+    textInput.style.height = 'auto';
+    appendBubble('user', val);
+    history.push({role:'user', content: val});
+    saveHistory();
+    setStatus('Omiga_y يفكر...', 'thinking');
+    sendBtn.disabled = true;
+
+    try{
+      const reply = await askOmiga(val);
+      appendBubble('assistant', reply);
+      history.push({role:'assistant', content: reply});
+      saveHistory();
+      setStatus('جاهز', '');
+      speak(reply);
+    }catch(e){
+      console.error(e);
+      appendBubble('assistant', 'صار خلل بالاتصال. جرب مرة ثانية.');
+      setStatus('خطأ بالاتصال', '');
+    }finally{
+      sendBtn.disabled = false;
+    }
+  }
+  sendBtn.addEventListener('click', sendMessage);
+  textInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+  });
+  textInput.addEventListener('input', () => {
+    textInput.style.height = 'auto';
+    textInput.style.height = Math.min(textInput.scrollHeight, 110) + 'px';
+  });
+
+  // ---------- Drawer ----------
+  function openDrawer(){
+    profName.value = config.name;
+    profNotes.value = config.notes;
+    voiceToggle.checked = config.voiceEnabled;
+    populateVoices();
+    overlay.classList.add('open');
+    drawer.classList.add('open');
+  }
+  function closeDrawer(){
+    overlay.classList.remove('open');
+    drawer.classList.remove('open');
+  }
+  menuBtn.addEventListener('click', openDrawer);
+  overlay.addEventListener('click', closeDrawer);
+
+  saveProfileBtn.addEventListener('click', async () => {
+    config.name = profName.value.trim();
+    config.notes = profNotes.value.trim();
+    config.voiceEnabled = voiceToggle.checked;
+    config.voiceURI = voiceSelect.value;
+    await saveConfig();
+    userLine.textContent = config.name ? ('مرحبًا ' + config.name).toUpperCase() : 'PERSONAL AI · v1';
+    closeDrawer();
+  });
+
+  clearChatBtn.addEventListener('click', async () => {
+    history = [];
+    await saveHistory();
+    renderAll();
+    closeDrawer();
+  });
+
+  // ---------- Quick actions (device shortcuts within browser sandbox) ----------
+  const quickActions = [
+    { label:'📞 اتصال', href:'tel:' },
+    { label:'💬 رسالة', href:'sms:' },
+    { label:'✉️ إيميل', href:'mailto:' },
+    { label:'🗺️ خرائط', href:'maps://' },
+    { label:'📅 تقويم', href:'calshow://' },
+  ];
+  quickActions.forEach(a => {
+    const el = document.createElement('a');
+    el.className = 'qbtn';
+    el.href = a.href;
+    el.textContent = a.label;
+    quickRow.appendChild(el);
+  });
+
+  // ---------- Init ----------
+  (async function init(){
+    await loadConfig();
+    await loadHistory();
+    userLine.textContent = config.name ? ('مرحبًا ' + config.name).toUpperCase() : 'PERSONAL AI · v1';
+    voiceToggle.checked = config.voiceEnabled;
+    renderAll();
+    setTimeout(populateVoices, 300);
+  })();
+})();
+</script>
+</body>
+</html>
